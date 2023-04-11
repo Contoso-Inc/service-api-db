@@ -1,0 +1,48 @@
+using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
+using WebApi.Models;
+using System.Text;
+using static System.Net.Mime.MediaTypeNames;
+using System.Diagnostics;
+
+namespace {{apiPackage}}
+{ {{#operations}}
+
+    [ApiController]
+    public partial {{#classModifier}}{{classModifier}} {{/classModifier}}class {{classname}} : ControllerBase
+    { 
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
+        private readonly IConfiguration _configuration;
+
+        public {{classname}}(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, IConfiguration configuration)
+        {
+            _httpClientFactory = httpClientFactory;
+            _httpContextAccessor = httpContextAccessor;
+            _configuration = configuration;
+
+            _jsonSerializerOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
+        }
+
+        {{#operation}}
+        [Http{{httpMethod}}(Name = "{{classname}}_{{operationId}}", Route = "{{{apiBasePath}}}{{{path}}}")]
+        public async Task<ActionResult<{{{returnType}}}>> _{{operationId}}(HttpRequest req, ExecutionContext context{{#allParams}}{{#isPathParam}}, [FromQuery]{{>pathParam}}{{/isPathParam}}{{/allParams}}){{^generateBody}};{{/generateBody}}
+        {{#generateBody}}
+        {
+            var method = this.GetType().GetMethod("{{operationId}}");
+            if(method == null)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
+            }
+            return (await ((Task<{{{returnType}}}>)method.Invoke(this, new object[] { req, context, id })).ConfigureAwait(false));
+        }
+
+        {{/generateBody}}
+        {{/operation}}
+    }
+{{/operations}}
+}

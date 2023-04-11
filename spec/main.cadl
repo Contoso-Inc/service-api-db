@@ -1,0 +1,57 @@
+import "@cadl-lang/rest";
+import "@cadl-lang/openapi3";
+import "@cadl-lang/versioning";
+
+using Cadl.Versioning;
+using Cadl.Http;
+using Cadl.Rest;
+
+@tag("info")
+@versioned(Versions)
+@service({
+    title: "API Chaining Service",
+})
+namespace WebApi;
+
+enum Versions {
+    "v1",
+}
+
+@doc("Configurable API information")
+model ApiInfo {
+    apiName?: string;
+    apiNameFromEnvironment?: string;
+    requestHeaders: Headers[];
+    calledApis?: CalledApi[];
+    instanceId: string;
+}
+
+model CalledApi {
+    apiName?: string;
+    httpStatusCode: int32;
+    reasonPhrase?: string;
+    reponse?: ApiInfo;
+    responseHeaders?: Headers[];
+    responseTimeMilliseconds: int64;
+}
+
+model Headers {
+    key: string;
+    value: string[];
+}
+
+model ChainRequest {
+    apiName: string;
+    chainTo?: ChainRequest[];
+}
+
+@route("/{version}/info")
+interface RouteService {
+    @get
+    get(version: Versions, apiName: string): ApiInfo;
+    @post
+    create(
+        version: Versions,
+        @body ChainConfiguration: ChainRequest[]
+    ): ApiInfo;
+}

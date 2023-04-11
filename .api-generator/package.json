@@ -1,0 +1,11 @@
+{
+  "name": "Chomp",
+  "dependencies": {
+    "@cadl-lang/compiler": "latest",
+    "@cadl-lang/openapi3": "latest",
+    "@cadl-lang/rest": "latest",
+    "@cadl-lang/versioning": "latest",
+    "@openapitools/openapi-generator-cli": "^2.5.2"
+  },
+  "private": true
+}

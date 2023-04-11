@@ -1,0 +1,14 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: csharp-webapi
+metadata:
+  template: csharp-webapi@0.0.1-beta
+services:
+  web:
+    project: ./src/services/WebApi
+    dist: build
+    language: csharp
+    host: containerapp
+    docker:
+      path: ./Dockerfile
+      context: ../
