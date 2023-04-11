@@ -3,7 +3,7 @@
     "WebApi": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "health/live",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ApiHostName": "localhost",
@@ -12,12 +12,12 @@
         "ReturnErrors": "false"
       },
       "dotnetRunMessages": true,
-      "applicationUrl": "http://localhost:5100"
+      "applicationUrl": "http://localhost:5100/"
     },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "swagger",
+      "launchUrl": "health/live",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -25,7 +25,7 @@
     "Docker": {
       "commandName": "Docker",
       "launchBrowser": true,
-      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/swagger",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}/health/ready",
       "publishAllPorts": true
     }
   },

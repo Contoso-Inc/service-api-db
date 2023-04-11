@@ -9,7 +9,7 @@ help()
       echo "<The command will allow you to use a spec first approach to developing APIs>"
       echo ""
       echo "Command"
-      echo "    genny.sh : Will clone from a source template library and generate the models and controllers based on the cadl specs defined."
+      echo "    genny.sh : used to generate models and controllers based on the cadl specs defined."
       echo ""
       echo "Arguments"
       echo "    --output-dir, -o      The dirctory to generate the API in [default: ./modules]"
@@ -19,43 +19,18 @@ help()
       exit 1
 }
 
-SHORT=t:,b:,l:,e:,s:,o:h
-LONG=template:,branch:,location:,environment:,subscription:,output_dir:help
+SHORT=c:,v:,o:h
+LONG=cadl_file:,spec_version:,output_dir:help
 OPTS=$(getopt -a -n files --options $SHORT --longoptions $LONG -- "$@")
 
 eval set -- "$OPTS"
 
-TEMPLATE='./template/'
-BRANCH='main'
-LOCATION='westus'
-ENVIRONMENT='dev'
-SUBSCRIPTION=''
-OUTPUT_DIR='./modules'
+OUTPUT_DIR='./src/WebApi'
 CADL_FILE='main.cadl'
 SPEC_VERSION='v1'
 while :
 do
   case "$1" in
-    -t | --template )
-      TEMPLATE="$2"
-      shift 2
-      ;;
-    -b | --branch )
-      BRANCH="$2"
-      shift 2
-      ;;
-    -l | --location )
-      LOCATION="$2"
-      shift 2
-      ;;
-    -e | --environment )
-      ENVIRONMENT="$2"
-      shift 2
-      ;;
-    -s | --subscription )
-      SUBSCRIPTION="$2"
-      shift 2
-      ;;
     -o | --output_dir )
       OUTPUT_DIR="$2"
       shift 2

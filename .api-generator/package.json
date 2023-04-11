@@ -1,10 +1,7 @@
 {
-  "name": "Chomp",
+  "name": "contoso-api-generator",
   "dependencies": {
-    "@cadl-lang/compiler": "latest",
-    "@cadl-lang/openapi3": "latest",
-    "@cadl-lang/rest": "latest",
-    "@cadl-lang/versioning": "latest",
+    "@typespec/compiler": "latest",
     "@openapitools/openapi-generator-cli": "^2.5.2"
   },
   "private": true

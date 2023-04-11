@@ -22,12 +22,13 @@
 	//		}
 	// }
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "npm --prefix ./.api-generator install | dotnet resore",
+	"postCreateCommand": "npm --prefix ./.api-generator install | dotnet restore ./src/WebApi/WebApi.sln",
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-azuretools.vscode-docker"
+				"ms-azuretools.vscode-docker",
+				"ms-azuretools.vscode-bicep"
 			]
 		}
 	}
