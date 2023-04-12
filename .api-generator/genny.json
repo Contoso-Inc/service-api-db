@@ -5,11 +5,11 @@
     "movables": [
         {
             "from": "/src/WebApi/Functions",
-            "to": "/src/services/WebApi/WebApi/Controllers"
+            "to": "/Controllers"
         },
         {
             "from": "/src/WebApi/Models",
-            "to": "/src/services/WebApi/WebApi/Models"
+            "to": "/Models"
         }
     ]
 }

@@ -4,18 +4,18 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
-COPY ["services/WebApi/WebApi/WebApi.csproj", "services/WebApi/"]
-COPY ["sdk/sdk.csproj", "sdk/"]
-RUN dotnet restore "services/WebApi/WebApi.csproj"
-RUN dotnet restore "sdk"
+COPY ["WebApi/WebApi.csproj", "WebApi/"]
+COPY ["EngSysSdk/EngSysSdk.csproj", "EngSysSdk/"]
+RUN dotnet restore "WebApi/WebApi.csproj"
+RUN dotnet restore "EngSysSdk/EngSysSdk.csproj"
 
 COPY . .
-RUN dotnet build "services/WebApi/WebApi/WebApi.csproj" -c Release -o /app/build
+RUN dotnet build "WebApi/WebApi.csproj" -c Release -o /app/build
 
 FROM build AS publish
-RUN dotnet publish "services/WebApi/WebApi/WebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "WebApi/WebApi.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 ARG BUILDTIME

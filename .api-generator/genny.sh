@@ -12,21 +12,22 @@ help()
       echo "    genny.sh : used to generate models and controllers based on the cadl specs defined."
       echo ""
       echo "Arguments"
-      echo "    --output-dir, -o      The dirctory to generate the API in [default: ./modules]"
-      echo "    --cadl-file, -c       Path to the cadl file to generate from [default: main.cadl]"
+      echo "    --output-dir, -o      The dirctory to generate the API in [default: ./src/WebApi/]"
+      echo "    --typespec-file, -t       Path to the TypeSpec file to generate from [default: main.tsp]"
       echo "    --spec-version, -v    Spec version to generate files for [default: v1]"
       echo ""
       exit 1
 }
 
 SHORT=c:,v:,o:h
-LONG=cadl_file:,spec_version:,output_dir:help
+LONG=typespec_file:,spec_version:,output_dir:help
 OPTS=$(getopt -a -n files --options $SHORT --longoptions $LONG -- "$@")
 
 eval set -- "$OPTS"
 
-OUTPUT_DIR='./src/WebApi'
-CADL_FILE='main.cadl'
+OUTPUT_DIR='./src/WebApi/'
+GENERATOR_DIR='./api-generator'
+SPEC_FILE='main.tsp'
 SPEC_VERSION='v1'
 while :
 do
@@ -35,8 +36,8 @@ do
       OUTPUT_DIR="$2"
       shift 2
       ;;
-    -c | --cadl-file )
-      CADL="$2"
+    -t | --typespec-file )
+      SPEC_FILE="$2"
       shift 2
       ;;
     -v | --spec-version )
@@ -62,19 +63,14 @@ then
   mkdir -p $OUTPUT_DIR
 fi
 
-## initialize the Azure Dev CLI Template
-azd init -t $TEMPLATE \
-    -l $LOCATION  --subscription $SUBSCRIPTION -b $BRANCH \
-    -e $ENVIRONMENT -C $OUTPUT_DIR --no-prompt
-
 ## Emit the open api spec from the cadl file
-cadl compile $CADL_FILE --output-dir $OUTPUT_DIR/spec --emit @cadl-lang/openapi3
+tsp compile $SPEC_FILE --output-dir $OUTPUT_DIR/spec --emit @cadl-lang/openapi3
 
-PACKAGE_NAME=$(jq -r '.packageName' "$OUTPUT_DIR/genny.json")
+PACKAGE_NAME=$(jq -r '.packageName' "$GENERATOR_DIR/genny.json")
 
-GENERATOR_NAME=$(jq -r '.generatorName' "$OUTPUT_DIR/genny.json")
+GENERATOR_NAME=$(jq -r '.generatorName' "$GENERATOR_DIR/genny.json")
 
-TEMPLATE_PATH=$(jq -r '.templatePath' "$OUTPUT_DIR/genny.json")
+TEMPLATE_PATH=$(jq -r '.templatePath' "$GENERATOR_DIR/genny.json")
 
 ## Generate the Models
 openapi-generator-cli generate -g $GENERATOR_NAME \
@@ -85,7 +81,7 @@ openapi-generator-cli generate -g $GENERATOR_NAME \
 ## Generate the apis
 openapi-generator-cli generate -g $GENERATOR_NAME \
     -o ./temp -i $OUTPUT_DIR/spec/@cadl-lang/openapi3/openapi.$SPEC_VERSION.json \
-    --package-name $PACKAGE_NAME -t $OUTPUT_DIR$TEMPLATE_PATH \
+    --package-name $PACKAGE_NAME -t $TEMPLATE_PATH \
     --global-property=apis
 
 ## Copy generated files

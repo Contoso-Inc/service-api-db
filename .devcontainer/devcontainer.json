@@ -31,8 +31,5 @@
 		}
 	},
 	"postCreateCommand": "npm --prefix ./.api-generator install | dotnet restore ./src/WebApi/WebApi.sln",
-	"remoteUser": "vscode",
-	"hostRequirements": {
-		"memory": "8gb"
-	}
+	"remoteUser": "vscode"
 }

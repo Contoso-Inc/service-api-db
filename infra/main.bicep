@@ -14,7 +14,7 @@ param location string = 'westus'
 @description('Set of tags to apply to all resources.')
 param tags object = {}
 
-param acrname string = 'asbdacrs01dzpuma01'
+param acrname string = 'acrsntsrv'
 
 /*
   1. Create log analytics workspace
@@ -103,7 +103,7 @@ module apis 'modules/containerapp.bicep' = [ for apiname in apinames: {
       }
       {
         name: 'SERVICENAMESPACE'
-        value: 'Chomp'
+        value: 'ContosoInc'
       }
       {
         name: 'SERVICEVERSION'

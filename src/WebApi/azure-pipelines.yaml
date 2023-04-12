@@ -12,7 +12,7 @@ variables:
   # Container registry service connection established during pipeline creation
   sandboxRegistryServiceConnection: '663e55b5-398d-4f47-9b0a-23d9b9855a06'
   imageRepository: 'webapi'
-  dockerfilePath: '$(Build.SourcesDirectory)/src/services/WebApi/Dockerfile'
+  dockerfilePath: '$(Build.SourcesDirectory)/src/WebApi/WebApi/Dockerfile'
   dockerBuildContext: '$(Build.SourcesDirectory)/src'
   tag: '$(Build.BuildId)'
 
