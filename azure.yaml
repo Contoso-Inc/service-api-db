@@ -11,5 +11,5 @@ services:
     host: containerapp
     module: ./app/webapi
     docker:
-      path: ./Dockerfile
+      path: ../Dockerfile
       context: ../

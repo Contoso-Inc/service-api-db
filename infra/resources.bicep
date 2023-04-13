@@ -34,6 +34,7 @@ module appInsightsResources './core/appinsights.bicep' = {
     location: location
     tags: tags
     resourceToken: resourceToken
+    logAnalyticsWorkspaceId: logAnalyticsResources.outputs.LOG_ANALYTICS_WORKSPACE_ID
   }
 }
 
