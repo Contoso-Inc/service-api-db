@@ -1,114 +1,50 @@
-// Parameters
-@minLength(2)
-@maxLength(10)
-@description('Prefix for all resource names.')
-param prefix string = 'cnt-srv'
+targetScope = 'subscription'
 
-@allowed([
-  'westus'
-  'westus3'
-])
-@description('Azure region used for the deployment of all resources.')
-param location string = 'westus'
+@minLength(1)
+@maxLength(64)
+@description('Name of the environment which is used to generate a short unqiue hash used in all resources.')
+param environmentName string
 
-@description('Set of tags to apply to all resources.')
-param tags object = {}
+@minLength(1)
+@description('Primary location for all resources')
+param location string
 
-param acrname string = 'acrsntsrv'
+@description('Id of the user or app to assign application roles')
+param principalId string = ''
 
-/*
-  1. Create log analytics workspace
-  2. Create app insights associate with log analytics workspace created in step 1
-  3. Create ACA environment
-*/
+@description('The image name for the webapi service')
+param webapiImageName string = ''
 
+var name = environmentName
 
-module loganalyticsworkspace 'modules/logAnalyticsworkspace.bicep' = { 
-  name: '${prefix}-law-deployment'
+var tags = {
+  'azd-env-name': environmentName
+}
+
+resource resourceGroup 'Microsoft.Resources/resourceGroups@2021-04-01' = {
+  name: '${name}-rg'
+  location: location
+  tags: tags
+}
+
+var resourceToken = toLower(uniqueString(subscription().id, name, location))
+
+module resources './resources.bicep' = {
+  name: 'resources-${resourceToken}'
+  scope: resourceGroup
   params: {
-    logAnalyticsWorkspaceName: '${prefix}-law'
+    name: name
     location: location
+    principalId: principalId
+    resourceToken: resourceToken
+    webapiImageName: webapiImageName
     tags: tags
   }
 }
 
-module appinsights 'modules/applicationinsights.bicep' = { 
-  name: '${prefix}-ai-deployment'
-  params: {
-    applicationInsightsName: '${prefix}-ai'
-    location: location
-    tags: tags
-    loganalyticsWorkspaceId: loganalyticsworkspace.outputs.logAnalyticsWorkspaceId
-  }
-}
-
-module network 'modules/networking.bicep' = {
-  name: '${prefix}-networking-deployment'
-  params: {
-    vnetName: '${prefix}-vnet'
-    location: location
-    acaAcrRegistryName:acrname
-    prefix:prefix
-  }
-}
-
-module aca 'modules/aca.bicep' = { 
-  name: '${prefix}-aca-deployment'
-  params: {
-    environmentName: '${prefix}-aca'
-    location: location
-    tags: tags
-    logAnalyticsWorkspaceCustomerId: loganalyticsworkspace.outputs.customerId
-    logAnalyticsWorkspacePrimarySharedKey: loganalyticsworkspace.outputs.sharedKey
-    appInsightsInstrumentationKey: appinsights.outputs.instrumentationKey
-    acaSubnetId: network.outputs.acaSubnetId
-  }
-}
-
-module acaPrivateDnsZone 'modules/dnsZone.bicep' = {
-  name: '${prefix}-acaPrivateDnsZone-deployment'
-  params: {
-    virtualNetworkResourceId: network.outputs.acaVnetId
-    acaEnvironmentDefaultDomain: aca.outputs.domainname
-    acaEnvironmentStaticIP: aca.outputs.staticip
-  }
-}
-
-var apinames = ['ingress', 'api1', 'api2', 'api3']
-
-module apis 'modules/containerapp.bicep' = [ for apiname in apinames: {
-  name: '${apiname}-deployment'
-  params: {
-    location: location
-    acaenvironmentid: aca.outputs.id
-    containerappname: apiname
-    containerimagename: 'webapi'
-    acrname: '${acrname}.azurecr.io'
-    environmentvars: [
-      {
-        name: 'ApiName'
-        value: apiname
-      }
-      {
-        name: 'ReturnErrors'
-        value: 'false'
-      }
-      {
-        name: 'ApiHostName'
-        value: 'localhost:3500/v1.0/invoke/{{${apiname}}}/method'
-      }
-      {
-        name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
-        value: appinsights.outputs.connectionString
-      }
-      {
-        name: 'SERVICENAMESPACE'
-        value: 'ContosoInc'
-      }
-      {
-        name: 'SERVICEVERSION'
-        value: '1.0.0'
-      }
-    ]
-  }
-}]
+output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.AZURE_KEY_VAULT_ENDPOINT
+output APPINSIGHTS_INSTRUMENTATIONKEY string = resources.outputs.APPINSIGHTS_INSTRUMENTATIONKEY
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+output AZURE_CONTAINER_REGISTRY_NAME string = resources.outputs.AZURE_CONTAINER_REGISTRY_NAME
+output APP_WEBAPI_BASE_URL string = resources.outputs.WEBAPI_APP_URI
+output APP_APPINSIGHTS_INSTRUMENTATIONKEY string = resources.outputs.APPINSIGHTS_INSTRUMENTATIONKEY
