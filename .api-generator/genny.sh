@@ -9,7 +9,7 @@ help()
       echo "<The command will allow you to use a spec first approach to developing APIs>"
       echo ""
       echo "Command"
-      echo "    genny.sh : used to generate models and controllers based on the cadl specs defined."
+      echo "    genny.sh : used to generate models and controllers based on the typespec defined."
       echo ""
       echo "Arguments"
       echo "    --output-dir, -o      The dirctory to generate the API in [default: ./src/WebApi/]"
@@ -19,14 +19,14 @@ help()
       exit 1
 }
 
-SHORT=c:,v:,o:h
-LONG=typespec_file:,spec_version:,output_dir:help
+SHORT=h
+LONG=typespec-file:,spec-version:,output-dir:help
 OPTS=$(getopt -a -n files --options $SHORT --longoptions $LONG -- "$@")
 
 eval set -- "$OPTS"
 
 OUTPUT_DIR='./src/WebApi/'
-GENERATOR_DIR='./api-generator'
+GENERATOR_DIR='./.api-generator'
 SPEC_FILE='main.tsp'
 SPEC_VERSION='v1'
 while :
@@ -63,8 +63,9 @@ then
   mkdir -p $OUTPUT_DIR
 fi
 
-## Emit the open api spec from the cadl file
-tsp compile $SPEC_FILE --output-dir $OUTPUT_DIR/spec --emit @cadl-lang/openapi3
+OPENAPI_SPEC_FILE=openapi.json
+## Emit the open api spec from the typespec file
+tsp compile $SPEC_FILE --output-dir $OUTPUT_DIR/spec --emit @typespec/openapi3 --option "@typespec/openapi3.output-file=$OPENAPI_SPEC_FILE"
 
 PACKAGE_NAME=$(jq -r '.packageName' "$GENERATOR_DIR/genny.json")
 
@@ -72,20 +73,22 @@ GENERATOR_NAME=$(jq -r '.generatorName' "$GENERATOR_DIR/genny.json")
 
 TEMPLATE_PATH=$(jq -r '.templatePath' "$GENERATOR_DIR/genny.json")
 
+OPENAPI_FILE_PATH=$OUTPUT_DIR/spec/@typespec/openapi3/openapi.json
+
 ## Generate the Models
 openapi-generator-cli generate -g $GENERATOR_NAME \
-    -o ./temp -i $OUTPUT_DIR/spec/@cadl-lang/openapi3/openapi.$SPEC_VERSION.json \
-    --package-name $PACKAGE_NAME -t $OUTPUT_DIR$TEMPLATE_PATH \
+    -o ./temp -i $OPENAPI_FILE_PATH \
+    --package-name $PACKAGE_NAME -t $TEMPLATE_PATH \
     --global-property=models
 
 ## Generate the apis
 openapi-generator-cli generate -g $GENERATOR_NAME \
-    -o ./temp -i $OUTPUT_DIR/spec/@cadl-lang/openapi3/openapi.$SPEC_VERSION.json \
+    -o ./temp -i $OPENAPI_FILE_PATH \
     --package-name $PACKAGE_NAME -t $TEMPLATE_PATH \
     --global-property=apis
 
 ## Copy generated files
-for MOVABLE in $(jq -c '.movables[]' "$OUTPUT_DIR/genny.json"); do
+for MOVABLE in $(jq -c '.movables[]' "$GENERATOR_DIR/genny.json"); do
     FROM=$(echo ${MOVABLE} | jq -r '.from')
     TO=$(echo ${MOVABLE} | jq -r '.to')
     FROM_DIR="./temp$FROM"
