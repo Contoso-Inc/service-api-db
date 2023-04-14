@@ -27,7 +27,8 @@
 				"ms-vscode.vscode-node-azure-pack",
 				"ms-dotnettools.csharp",
 				"ms-dotnettools.vscode-dotnet-runtime",
-				"ms-azuretools.vscode-azurefunctions"
+				"ms-azuretools.vscode-azurefunctions",
+				"microsoft.typespec-vscode"
 			]
 		}
 	},

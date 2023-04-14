@@ -4,6 +4,7 @@ using WebApi.Models;
 using System.Text;
 using static System.Net.Mime.MediaTypeNames;
 using System.Diagnostics;
+using System.Net;
 
 namespace {{apiPackage}}
 { {{#operations}}
@@ -29,7 +30,8 @@ namespace {{apiPackage}}
         }
 
         {{#operation}}
-        [Http{{httpMethod}}(Name = "{{classname}}_{{operationId}}", Route = "{{{apiBasePath}}}{{{path}}}")]
+        [Http{{httpMethod}}(Name = "{{classname}}_{{operationId}}")]
+        [Route("{{{apiBasePath}}}{{{path}}}")]
         public async Task<ActionResult<{{{returnType}}}>> _{{operationId}}(HttpRequest req, ExecutionContext context{{#allParams}}{{#isPathParam}}, [FromQuery]{{>pathParam}}{{/isPathParam}}{{/allParams}}){{^generateBody}};{{/generateBody}}
         {{#generateBody}}
         {
@@ -38,7 +40,7 @@ namespace {{apiPackage}}
             {
                 return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
             }
-            return (await ((Task<{{{returnType}}}>)method.Invoke(this, new object[] { req, context, id })).ConfigureAwait(false));
+            return (await ((Task<{{{returnType}}}>)method.Invoke(this, new object[] { req, context })).ConfigureAwait(false));
         }
 
         {{/generateBody}}
