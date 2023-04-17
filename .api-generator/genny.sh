@@ -63,6 +63,8 @@ then
   mkdir -p $OUTPUT_DIR
 fi
 
+echo "Generatoring OpenAPI spec from $SPEC_FILE"
+
 OPENAPI_SPEC_FILE=openapi.json
 ## Emit the open api spec from the typespec file
 tsp compile $SPEC_FILE --output-dir $OUTPUT_DIR/spec --emit @typespec/openapi3 --option "@typespec/openapi3.output-file=$OPENAPI_SPEC_FILE"
@@ -75,17 +77,23 @@ TEMPLATE_PATH=$(jq -r '.templatePath' "$GENERATOR_DIR/genny.json")
 
 OPENAPI_FILE_PATH=$OUTPUT_DIR/spec/@typespec/openapi3/openapi.json
 
+echo "Generating Models of WebAPI"
+
 ## Generate the Models
 openapi-generator-cli generate -g $GENERATOR_NAME \
     -o ./temp -i $OPENAPI_FILE_PATH \
     --package-name $PACKAGE_NAME -t $TEMPLATE_PATH \
     --global-property=models
 
+echo "Generating controllers for WebAPI"
+
 ## Generate the apis
 openapi-generator-cli generate -g $GENERATOR_NAME \
     -o ./temp -i $OPENAPI_FILE_PATH \
     --package-name $PACKAGE_NAME -t $TEMPLATE_PATH \
     --global-property=apis
+
+echo "Moving generated files to $OUTPUT_DIR"
 
 ## Copy generated files
 for MOVABLE in $(jq -c '.movables[]' "$GENERATOR_DIR/genny.json"); do
@@ -98,6 +106,7 @@ for MOVABLE in $(jq -c '.movables[]' "$GENERATOR_DIR/genny.json"); do
     cp -R "$FROM_DIR/." $TO_DIR
 done
 
+echo "Cleaning up temporary resources"
 ## Clean Up temporary files used to generate code
 rm -rf ./temp
 rm ./openapitools.json
