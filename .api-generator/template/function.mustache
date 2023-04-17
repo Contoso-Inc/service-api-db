@@ -1,48 +1,63 @@
+{{>partial_header}}
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+{{#operationResultTask}}
+using System.Threading;
+using System.Threading.Tasks;
+{{/operationResultTask}}
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+{{^isLibrary}}
 using System.Text.Json;
-using WebApi.Models;
-using System.Text;
-using static System.Net.Mime.MediaTypeNames;
-using System.Diagnostics;
+{{/isLibrary}}
+using {{modelPackage}};
 using System.Net;
+using System.Reflection;
 
 namespace {{apiPackage}}
 { {{#operations}}
-
+    /// <summary>
+    /// {{description}}
+    /// </summary>{{#description}}
+    [Description("{{.}}")]{{/description}}
     [ApiController]
-    public partial {{#classModifier}}{{classModifier}} {{/classModifier}}class {{classname}} : ControllerBase
-    { 
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly JsonSerializerOptions _jsonSerializerOptions;
-        private readonly IConfiguration _configuration;
-
-        public {{classname}}(IHttpContextAccessor httpContextAccessor, IHttpClientFactory httpClientFactory, IConfiguration configuration)
-        {
-            _httpClientFactory = httpClientFactory;
-            _httpContextAccessor = httpContextAccessor;
-            _configuration = configuration;
-
-            _jsonSerializerOptions = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            };
-        }
-
-        {{#operation}}
-        [Http{{httpMethod}}(Name = "{{classname}}_{{operationId}}")]
-        [Route("{{{apiBasePath}}}{{{path}}}")]
-        public async Task<ActionResult<{{{returnType}}}>> _{{operationId}}(HttpRequest req, ExecutionContext context{{#allParams}}{{#isPathParam}}, [FromQuery]{{>pathParam}}{{/isPathParam}}{{/allParams}}){{^generateBody}};{{/generateBody}}
+    public partial {{#classModifier}}{{.}} {{/classModifier}}class {{classname}}Controller : ControllerBase
+    { {{#operation}}
+        /// <summary>
+        /// {{summary}}
+        /// </summary>{{#notes}}
+        /// <remarks>{{.}}</remarks>{{/notes}}{{#allParams}}
+        /// <param name="{{paramName}}">{{description}}{{#isDeprecated}} (deprecated){{/isDeprecated}}</param>{{/allParams}}{{#operationResultTask}}{{#operationIsAsync}}
+        /// <param name="cancellationToken">The cancellation token to cancel the operation.</param>{{/operationIsAsync}}{{/operationResultTask}}{{#responses}}
+        /// <response code="{{code}}">{{message}}</response>{{/responses}}
+        [Http{{httpMethod}}]
+        [Route("{{{basePathWithoutHost}}}{{{path}}}")]
+{{#authMethods}}
+{{#isApiKey}}
+        [Authorize(Policy = "{{name}}")]
+{{/isApiKey}}
+{{#isBasicBearer}}
+        [Authorize{{#scopes}}{{#-first}}(Roles = "{{/-first}}{{scope}}{{^-last}},{{/-last}}{{#-last}}"){{/-last}}{{/scopes}}]
+{{/isBasicBearer}}
+{{/authMethods}}
+        {{#vendorExtensions.x-aspnetcore-consumes}}
+        [Consumes({{&vendorExtensions.x-aspnetcore-consumes}})]
+        {{/vendorExtensions.x-aspnetcore-consumes}}
+        {{#isDeprecated}}
+        [Obsolete]
+        {{/isDeprecated}}
+        public {{#operationResultTask}}{{#operationIsAsync}}async {{/operationIsAsync}}Task<{{/operationResultTask}}IActionResult{{#operationResultTask}}>{{/operationResultTask}} {{operationId}}({{#allParams}}{{>pathParam}}{{>queryParam}}{{>bodyParam}}{{>formParam}}{{>headerParam}}{{^-last}}{{^isCookieParam}}, {{/isCookieParam}}{{/-last}}{{#-last}}{{#operationResultTask}}{{#operationIsAsync}}, {{/operationIsAsync}}{{/operationResultTask}}{{/-last}}{{/allParams}}{{#operationResultTask}}{{#operationIsAsync}}CancellationToken cancellationToken{{/operationIsAsync}}{{/operationResultTask}}){{^generateBody}};{{/generateBody}}
         {{#generateBody}}
         {
-            var method = this.GetType().GetMethod("{{operationId}}");
+            var method = this.GetType().GetMethod("_{{operationId}}", BindingFlags.NonPublic | BindingFlags.Instance);
             if(method == null)
             {
                 return new StatusCodeResult((int)HttpStatusCode.NotImplemented);
             }
-            return (await ((Task<{{{returnType}}}>)method.Invoke(this, new object[] { req, context })).ConfigureAwait(false));
+            return (ActionResult){{#operationIsAsync}}await ((Task<{{{returnType}}}>){{/operationIsAsync}}method.Invoke(this, new object[] { {{#allParams}}{{paramName}}{{^-last}}, {{/-last}}{{/allParams}} }){{#operationIsAsync}}).ConfigureAwait(false){{/operationIsAsync}};
         }
-
         {{/generateBody}}
         {{/operation}}
     }
