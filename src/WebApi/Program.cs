@@ -48,7 +48,7 @@ namespace WebApi
 
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint("/spec/@typespec/openapi3/openapi.json", "v1");
+                options.SwaggerEndpoint("/spec/openapi.json", "v1");
                 options.RoutePrefix = string.Empty;
             });
 

@@ -67,7 +67,7 @@ echo "Generatoring OpenAPI spec from $SPEC_FILE"
 
 OPENAPI_SPEC_FILE=openapi.json
 ## Emit the open api spec from the typespec file
-tsp compile $SPEC_FILE --output-dir $OUTPUT_DIR/spec --emit @typespec/openapi3 --option "@typespec/openapi3.output-file=$OPENAPI_SPEC_FILE"
+tsp compile $SPEC_FILE --emit @typespec/openapi3
 
 PACKAGE_NAME=$(jq -r '.packageName' "$GENERATOR_DIR/genny.json")
 
@@ -75,7 +75,7 @@ GENERATOR_NAME=$(jq -r '.generatorName' "$GENERATOR_DIR/genny.json")
 
 TEMPLATE_PATH=$(jq -r '.templatePath' "$GENERATOR_DIR/genny.json")
 
-OPENAPI_FILE_PATH=$OUTPUT_DIR/spec/@typespec/openapi3/openapi.json
+OPENAPI_FILE_PATH=$OUTPUT_DIR/spec/openapi.json
 
 echo "Generating Models of WebAPI"
 
