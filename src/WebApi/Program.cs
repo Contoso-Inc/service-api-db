@@ -1,6 +1,8 @@
 using System.Text.Json;
+using Microsoft.Extensions.FileProviders;
 using WebApi.Ops;
 using WebApi.Services;
+
 
 namespace WebApi
 {
@@ -9,7 +11,7 @@ namespace WebApi
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
-            
+
             var apiName = builder.Configuration.GetValue<string>("ApiName");
             builder.AddOps(args);
             builder.Services.AddHttpClient();
@@ -18,7 +20,7 @@ namespace WebApi
             builder.Services.AddSingleton<IEnvHealthCheck, EnvHealthCheck>();
             builder.Services.AddHealthChecks().AddCheck<IEnvHealthCheck>(
                 "EnvHealthy",
-                tags: new [] { HealthTag.Live }
+                tags: new[] { HealthTag.Live }
             );
 
             // Add services to the container.
@@ -31,11 +33,24 @@ namespace WebApi
 
             var app = builder.Build();
 
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(builder.Environment.ContentRootPath, "spec")),
+                RequestPath = "/spec"
+            });
+
             app.ConfigOps();
 
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/spec/@typespec/openapi3/openapi.json", "v1");
+                options.RoutePrefix = string.Empty;
+            });
 
             app.Run();
         }
